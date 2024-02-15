@@ -7,6 +7,8 @@
  *
  *  University of Washington, Tacoma
  *  TCSS 422 - Operating Systems
+ *
+ *  Hassan Farhat and Avinash Bavisetty
  */
 
 // Include only libraries for this module
@@ -19,13 +21,18 @@
 #include "prodcons.h"
 
 
+Matrix ** bigmatrix;
+
 // Define Locks, Condition variables, and so on here
-
-
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER; // declare/init a lock
+pthread_cond_t full = PTHREAD_COND_INITIALIZER; // declare/init a CV
+pthread_cond_t empty = PTHREAD_COND_INITIALIZER; // declare/init a CV
+pthread_cond_t boundedbuffer = PTHREAD_MUTEX_INITIALIZER; // declare/init a lock
 
 // Bounded buffer put() get()
 int put(Matrix * value)
 {
+    pthread_mutex_lock(boundedbuffer);
 
 }
 
