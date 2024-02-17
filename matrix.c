@@ -2,7 +2,6 @@
  *  Matrix routines
  *  Supports generation of random R x C matrices
  *  And operations on them
- *
  *  University of Washington, Tacoma
  *  TCSS 422 - Operating Systems
  */

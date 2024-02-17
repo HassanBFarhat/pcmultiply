@@ -29,26 +29,48 @@ pthread_cond_t full = PTHREAD_COND_INITIALIZER; // declare/init a CV
 pthread_cond_t empty = PTHREAD_COND_INITIALIZER; // declare/init a CV
 pthread_cond_t boundedbuffer = PTHREAD_MUTEX_INITIALIZER; // declare/init a lock
 
+
+int countIn = 0;
+int countOut = 0;
+int count = 0;
+
 // Bounded buffer put() get()
 int put(Matrix * value)
 {
-    pthread_mutex_lock(boundedbuffer);
+    pthread_mutex_lock(&mutex); // Lock the mutex for thread safety
 
+    // Check if the buffer is full
+    while (count >= BOUNDED_BUFFER_SIZE) {
+        pthread_cond_wait(&empty, &mutex);
+    }
+
+    // Put the value into the buffer
+    bigmatrix[countIn] = value;
+    countIn = (countIn + 1) % BOUNDED_BUFFER_SIZE;
+    count++;
+
+    //Buffer is full
+    pthread_cond_signal(&full);
+
+    // Unlock the mutex
+    pthread_mutex_unlock(&mutex);
+
+    return EXIT_SUCCESS;
 }
 
 Matrix * get()
 {
-  return NULL;
+  return EXIT_SUCCESS;
 }
 
 // Matrix PRODUCER worker thread
 void *prod_worker(void *arg)
 {
-  return NULL;
+  return EXIT_SUCCESS;
 }
 
 // Matrix CONSUMER worker thread
 void *cons_worker(void *arg)
 {
-  return NULL;
+  return EXIT_SUCCESS;
 }
