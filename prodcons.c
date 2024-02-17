@@ -60,7 +60,25 @@ int put(Matrix * value)
 
 Matrix * get()
 {
-  return EXIT_SUCCESS;
+    pthread_mutex_lock(&mutex); // Lock the mutex for thread safety
+
+    // Check if the buffer is empty
+    while (count <= 0) {
+        pthread_cond_wait(&full, &mutex);
+    }
+
+    // Get the value from the buffer
+    Matrix *matrix = bigmatrix[countOut];
+    countOut = (countOut - 1 + BOUNDED_BUFFER_SIZE) % BOUNDED_BUFFER_SIZE;
+    count--;
+
+    // Signal that the buffer is not full anymore
+    pthread_cond_signal(&empty);
+
+    // Unlock the mutex
+    pthread_mutex_unlock(&mutex);
+
+    return matrix;
 }
 
 // Matrix PRODUCER worker thread
