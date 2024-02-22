@@ -34,6 +34,8 @@ int countIn = 0;
 int countOut = 0;
 int count = 0;
 
+counter_t count1;
+
 // Bounded buffer put() get()
 int put(Matrix * value)
 {
@@ -82,9 +84,47 @@ Matrix * get()
 }
 
 // Matrix PRODUCER worker thread
-void *prod_worker(void *arg)
-{
-  return EXIT_SUCCESS;
+void *prod_worker(void *arg) {
+    ProdConsStats *prodConsStats = (ProdConsStats*)arg;
+
+    while (1) {
+        //mutex is locked
+        pthread_mutex_lock(&mutex);
+
+        // check to see if the matrices count is sufficient
+        if (get_cnt(&count1) >= NUMBER_OF_MATRICES) {
+
+            //mutex is unlocked
+            pthread_mutex_unlock(&mutex);
+
+            // it will be broadcasted that it is no longer empty
+            pthread_cond_broadcast(&empty);
+            return EXIT_SUCCESS;
+        }
+
+        // Check if the buffer is full, and if its full wait till its not full
+        while (count == BOUNDED_BUFFER_SIZE) {
+
+            pthread_cond_wait(&empty, &mutex);
+        }
+
+        // matrix is generated
+        Matrix *matrix = GenMatrixRandom();
+
+        // matrix is put into the buffer
+        put(matrix);
+
+        // update
+        prodConsStats->matrixtotal += 1;
+        prodConsStats->sumtotal += SumMatrix(matrix);
+        increment_cnt(&count1);
+
+        //not empty anymore
+        pthread_cond_signal(&full);
+
+        // Unlock the mutex
+        pthread_mutex_unlock(&mutex);
+    }
 }
 
 // Matrix CONSUMER worker thread
