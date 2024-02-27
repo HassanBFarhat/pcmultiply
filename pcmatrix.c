@@ -87,37 +87,36 @@ int main (int argc, char * argv[])
   // Seed the random number generator with the system time
   srand((unsigned) time(&t));
 
-  //
-  // Demonstration code to show the use of matrix routines
-  //
-  // DELETE THIS CODE FOR YOUR SUBMISSION
-  // ----------------------------------------------------------
-  bigmatrix = (Matrix **) malloc(sizeof(Matrix *) * BOUNDED_BUFFER_SIZE);
-  printf("MATRIX MULTIPLICATION DEMO:\n\n");
-  Matrix *m1, *m2, *m3;
-  for (int i=0;i<NUMBER_OF_MATRICES;i++)
-  {
-    m1 = GenMatrixRandom();
-    m2 = GenMatrixRandom();
-    m3 = MatrixMultiply(m1, m2);
-    if (m3 != NULL)
-    {
-      DisplayMatrix(m1,stdout);
-      printf("    X\n");
-      DisplayMatrix(m2,stdout);
-      printf("    =\n");
-      DisplayMatrix(m3,stdout);
-      printf("\n");
-      FreeMatrix(m3);
-      FreeMatrix(m2);
-      FreeMatrix(m1);
-      m1=NULL;
-      m2=NULL;
-      m3=NULL;
-    }
-  }
-  return 0;
-  // ----------------------------------------------------------
+//  //
+//  // Demonstration code to show the use of matrix routines
+//  //
+//  // DELETE THIS CODE FOR YOUR SUBMISSION
+//  // ----------------------------------------------------------
+//  bigmatrix = (Matrix **) malloc(sizeof(Matrix *) * BOUNDED_BUFFER_SIZE);
+//  printf("MATRIX MULTIPLICATION DEMO:\n\n");
+//  Matrix *m1, *m2, *m3;
+//  for (int i=0;i<NUMBER_OF_MATRICES;i++)
+//  {
+//    m1 = GenMatrixRandom();
+//    m2 = GenMatrixRandom();
+//    m3 = MatrixMultiply(m1, m2);
+//    if (m3 != NULL)
+//    {
+//      DisplayMatrix(m1,stdout);
+//      printf("    X\n");
+//      DisplayMatrix(m2,stdout);
+//      printf("    =\n");
+//      DisplayMatrix(m3,stdout);
+//      printf("\n");
+//      FreeMatrix(m3);
+//      FreeMatrix(m2);
+//      FreeMatrix(m1);
+//      m1=NULL;
+//      m2=NULL;
+//      m3=NULL;
+//    }
+//  }
+//  // ----------------------------------------------------------
 
 
 
@@ -127,10 +126,67 @@ int main (int argc, char * argv[])
   printf("\n");
 
   // Here is an example to define one producer and one consumer
-  pthread_t pr;
-  pthread_t co;
+  // pthread_t pr;
+ // pthread_t co;
 
-  // Add your code here to create threads and so on
+    // Add your code here to create threads and so on
+
+    // Initialize buffer
+    bigmatrix = (Matrix **)malloc(sizeof(Matrix *) * BOUNDED_BUFFER_SIZE);
+    if (bigmatrix == NULL) {
+        perror("Failed to allocate memory for buffer");
+        exit(EXIT_FAILURE);
+    }
+    printf("Buffer created\n");
+
+    // Initialize producer and consumer statistics
+    ProdConsStats *consumer_stats = (ProdConsStats *)malloc(sizeof(ProdConsStats));
+    ProdConsStats *producer_stats = (ProdConsStats *)malloc(sizeof(ProdConsStats));
+    if (consumer_stats == NULL || producer_stats == NULL) {
+        perror("Failed to allocate memory for statistics");
+        exit(EXIT_FAILURE);
+    }
+    consumer_stats->sumtotal = 0;
+    consumer_stats->multtotal = 0;
+    consumer_stats->matrixtotal = 0;
+    producer_stats->sumtotal = 0;
+    producer_stats->multtotal = 0;
+    producer_stats->matrixtotal = 0;
+
+    // Define thread attributes
+    pthread_attr_t attr;
+    if (pthread_attr_init(&attr) != 0) {
+        perror("Failed to initialize thread attributes");
+        exit(EXIT_FAILURE);
+    }
+
+    // Create multiple producer and consumer threads
+    pthread_t producers[numw];
+    pthread_t consumers[numw];
+    for (int i = 0; i < numw; i++) {
+        if (pthread_create(&producers[i], &attr, prod_worker, producer_stats) != 0) {
+            perror("Failed to create producer thread");
+            exit(EXIT_FAILURE);
+        }
+        if (pthread_create(&consumers[i], &attr, cons_worker, consumer_stats) != 0) {
+            perror("Failed to create consumer thread");
+            exit(EXIT_FAILURE);
+        }
+    }
+    printf("Producer and consumer threads created\n");
+
+    // Join producer and consumer threads when they are done
+    for (int i = 0; i < numw; i++) {
+        if (pthread_join(producers[i], NULL) != 0) {
+            perror("Failed to join producer thread");
+            exit(EXIT_FAILURE);
+        }
+        if (pthread_join(consumers[i], NULL) != 0) {
+            perror("Failed to join consumer thread");
+            exit(EXIT_FAILURE);
+        }
+    }
+    printf("Producer and consumer threads joined\n");
 
 
   // These are used to aggregate total numbers for main thread output
@@ -145,6 +201,8 @@ int main (int argc, char * argv[])
 
   printf("Sum of Matrix elements --> Produced=%d = Consumed=%d\n",prs,cos);
   printf("Matrices produced=%d consumed=%d multiplied=%d\n",prodtot,constot,consmul);
+
+  free(bigmatrix);
 
   return 0;
 }

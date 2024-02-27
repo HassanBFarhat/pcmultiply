@@ -128,7 +128,62 @@ void *prod_worker(void *arg) {
 }
 
 // Matrix CONSUMER worker thread
-void *cons_worker(void *arg)
-{
-  return EXIT_SUCCESS;
+void *cons_worker(void *arg) {
+    ProdConsStats *prodConsStats = (ProdConsStats*)arg;
+
+    while (1) {
+        pthread_mutex_lock(&mutex); // Lock the mutex
+
+        // Check if enough matrices have been consumed
+        if (get_cnt(&count1) >= NUMBER_OF_MATRICES) {
+            pthread_mutex_unlock(&mutex); // Unlock the mutex before returning
+            return EXIT_SUCCESS; // Exit the thread
+        }
+
+        // Check if the buffer is empty
+        while (count <= 0) {
+            pthread_cond_wait(&full, &mutex); // Wait until the buffer is not empty
+        }
+
+        // Get the first matrix from the buffer
+        Matrix *matrix1 = get();
+
+        // Check if we received a NULL matrix (no more matrices available)
+        if (matrix1 == NULL) {
+            pthread_mutex_unlock(&mutex); // Unlock the mutex before returning
+            return EXIT_SUCCESS; // Exit the thread
+        }
+
+        // Get the second matrix from the buffer
+        Matrix *matrix2 = get();
+
+        // Check if we received a NULL matrix (no more matrices available)
+        if (matrix2 == NULL) {
+            FreeMatrix(matrix1); // Free the first matrix
+            pthread_mutex_unlock(&mutex); // Unlock the mutex before returning
+            return EXIT_SUCCESS; // Exit the thread
+        }
+
+        // Perform matrix multiplication
+        Matrix *result_matrix = MatrixMultiply(matrix1, matrix2);
+
+        // Check if multiplication was successful
+        if (result_matrix != NULL) {
+            // Update statistics
+            prodConsStats->multtotal += 1;
+            DisplayMatrix(result_matrix, stdout); // Display the result matrix
+            FreeMatrix(matrix1); // Free the input matrices
+            FreeMatrix(matrix2);
+            FreeMatrix(result_matrix);
+            increment_cnt(&count1); // Increment the number of matrices consumed
+        } else {
+            // If multiplication failed, discard the input matrices
+            FreeMatrix(matrix1);
+            FreeMatrix(matrix2);
+        }
+
+        pthread_cond_signal(&empty); // Signal that the buffer is not full anymore
+        pthread_mutex_unlock(&mutex); // Unlock the mutex
+    }
 }
+
