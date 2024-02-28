@@ -121,8 +121,8 @@ int main (int argc, char * argv[])
     pthread_t consumers[numw];
 
     for (int i = 0; i < numw; i++) {
-        pthread_create(&producers[i], NULL, cons_worker, con);
-        pthread_create(&consumers[i], NULL, prod_worker, pro);
+        pthread_create(&consumers[i], NULL, cons_worker, con);
+        pthread_create(&producers[i], NULL, prod_worker, pro);
     }
 
     printf("Producer and consumer threads created\n");
