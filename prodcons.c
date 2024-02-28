@@ -49,12 +49,13 @@ int put(Matrix * value)
         out = in;
         in = (in+1) % BOUNDED_BUFFER_SIZE;
         counter++;
-    } else {
-        pthread_cond_wait(&empty, &mutex);
-    }
+    } 
+    // else {
+    //     pthread_cond_wait(&empty, &mutex);
+    // }
 
     //Buffer is full
-    pthread_cond_signal(&full);
+    // pthread_cond_signal(&full);
 
     // Unlock the mutex
     pthread_mutex_unlock(&boundedbuffer);
@@ -64,25 +65,35 @@ int put(Matrix * value)
 
 Matrix * get()
 {
+    Matrix * temp = NULL;
     pthread_mutex_lock(&boundedbuffer); // Lock the mutex for thread safety
 
     // Wait while the buffer is empty
-    while (counter == 0) {
-        pthread_cond_wait(&empty, &boundedbuffer);
+    // while (counter == 0) {
+    //     pthread_cond_wait(&empty, &boundedbuffer);
+    // }
+
+    if (counter <= 0 && temp != NULL) {
+        return temp;
+    } else {
+        temp = bigmatrix[out];
+        in = out;
+        out = (out - 1) % BOUNDED_BUFFER_SIZE;
+        count--;
     }
 
     // Get the matrix from the buffer
-    Matrix *temp = bigmatrix[out];
-    out = (out - 1) % BOUNDED_BUFFER_SIZE;
-    counter--;
+    // Matrix *temp = bigmatrix[out];
+    // out = (out - 1) % BOUNDED_BUFFER_SIZE;
+    // counter--;
 
     // Signal that the buffer is not full anymore
-    pthread_cond_signal(&full);
+    // pthread_cond_signal(&full);
 
     // Unlock the mutex
     pthread_mutex_unlock(&boundedbuffer);
 
-    return temp;
+    return (temp != NULL) ? temp : NULL;
 }
 
 // Matrix PRODUCER worker thread
