@@ -73,7 +73,7 @@ Matrix * get()
 
     // Get the matrix from the buffer
     Matrix *temp = bigmatrix[out];
-    out = (out + 1) % BOUNDED_BUFFER_SIZE;
+    out = (out - 1) % BOUNDED_BUFFER_SIZE;
     counter--;
 
     // Signal that the buffer is not full anymore
