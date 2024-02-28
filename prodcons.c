@@ -28,6 +28,8 @@ pthread_cond_t empty = PTHREAD_COND_INITIALIZER; // declare/init a CV
 pthread_mutex_t boundedbuffer = PTHREAD_MUTEX_INITIALIZER; // declare/init a lock
 
 
+Matrix ** bigmatrix;
+
 int in = 0;
 int out = 0;
 int counter = 0;

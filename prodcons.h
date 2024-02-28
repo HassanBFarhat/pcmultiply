@@ -6,8 +6,6 @@
  *  TCSS 422 - Operating Systems
  */
 
-Matrix ** bigmatrix;
-
 // PRODUCER-CONSUMER put() get() function prototypes
 
 // Data structure to track matrix production / consumption stats
