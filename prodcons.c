@@ -46,6 +46,7 @@ int put(Matrix * value)
     // if the buffer is not full then the count is incremented
     if (counter < BOUNDED_BUFFER_SIZE && value != NULL) {
         bigmatrix[in] = value;
+        out = in;
         in = (in+1) % BOUNDED_BUFFER_SIZE;
         counter++;
     } else {
