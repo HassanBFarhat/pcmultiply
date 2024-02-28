@@ -106,77 +106,45 @@ int main (int argc, char * argv[])
     }
     printf("Buffer created\n");
 
-    // Initialize producer and consumer statistics
-    ProdConsStats *consumer_stats = (ProdConsStats *)malloc(sizeof(ProdConsStats));
-    ProdConsStats *producer_stats = (ProdConsStats *)malloc(sizeof(ProdConsStats));
-    if (consumer_stats == NULL || producer_stats == NULL) {
-        perror("Failed to allocate memory for statistics");
-        exit(EXIT_FAILURE);
-    }
+    ProdConsStats *con = (ProdConsStats *) malloc(sizeof(ProdConsStats));
+    con->sumtotal = 0;
+    con->multtotal = 0;
+    con->matrixtotal = 0;
 
-    ProdConsStats *consumer = (ProdConsStats *) malloc(sizeof(ProdConsStats));
-    consumer_stats->sumtotal = 0;
-    consumer_stats->multtotal = 0;
-    consumer_stats->matrixtotal = 0;
-
-    ProdConsStats *producer = (ProdConsStats *) malloc(sizeof(ProdConsStats));
-    producer_stats->sumtotal = 0;
-    producer_stats->multtotal = 0;
-    producer_stats->matrixtotal = 0;
-
-    // Define thread attributes
-    pthread_attr_t attr;
-    if (pthread_attr_init(&attr) != 0) {
-        perror("Failed to initialize thread attributes");
-        exit(EXIT_FAILURE);
-    }
+    ProdConsStats *pro = (ProdConsStats *) malloc(sizeof(ProdConsStats));
+    pro->sumtotal = 0;
+    pro->multtotal = 0;
+    pro->matrixtotal = 0;
 
     // Create multiple producer and consumer threads
     pthread_t producers[numw];
     pthread_t consumers[numw];
 
     for (int i = 0; i < numw; i++) {
-        if (pthread_create(&producers[i], &attr, prod_worker, producer_stats) != 0) {
-            perror("Failed to create producer thread");
-            exit(EXIT_FAILURE);
-        }
-
-        if (pthread_create(&consumers[i], &attr, cons_worker, consumer_stats) != 0) {
-            perror("Failed to create consumer thread");
-            exit(EXIT_FAILURE);
-        }
+        pthread_create(&producers[i], NULL, cons_worker, con);
+        pthread_create(&consumers[i], NULL, prod_worker, pro);
     }
+
     printf("Producer and consumer threads created\n");
 
-    // Join producer and consumer threads when they are done
+    // Join producer and consumer threads
     for (int i = 0; i < numw; i++) {
-        if (pthread_join(producers[i], NULL) != 0) {
-            perror("Failed to join producer thread");
-            exit(EXIT_FAILURE);
-        }
-        if (pthread_join(consumers[i], NULL) != 0) {
-            perror("Failed to join consumer thread");
-            exit(EXIT_FAILURE);
-        }
+        pthread_join(producers[i], NULL);
+        pthread_join(consumers[i], NULL);
     }
-    printf("Producer and consumer threads joined\n");
-
 
   // These are used to aggregate total numbers for main thread output
-    int prs = producer->sumtotal;
-    int cos = consumer->sumtotal;
-    int prodtot = producer->matrixtotal;
-    int constot = consumer->matrixtotal;
-    int consmul = consumer->multtotal;
+    int prs = pro->sumtotal;
+    int cos = con->sumtotal;
+    int prodtot = pro->matrixtotal;
+    int constot = con->matrixtotal;
+    int consmul = con->multtotal;
 
   // consume ProdConsStats from producer and consumer threads [HINT: return from join]
   // add up total matrix stats in prs, cos, prodtot, constot, consmul
 
   printf("Sum of Matrix elements --> Produced=%d = Consumed=%d\n",prs,cos);
   printf("Matrices produced=%d consumed=%d multiplied=%d\n",prodtot,constot,consmul);
-
-  free(consumer_stats);
-  free(producer_stats);
   free(bigmatrix);
 
   return 0;
