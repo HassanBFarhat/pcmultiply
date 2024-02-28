@@ -79,7 +79,7 @@ Matrix * get()
         temp = bigmatrix[out];
         in = out;
         out = (out - 1) % BOUNDED_BUFFER_SIZE;
-        count--;
+        counter--;
     }
 
     // Get the matrix from the buffer
