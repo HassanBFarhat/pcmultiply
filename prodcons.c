@@ -30,12 +30,27 @@ pthread_mutex_t boundedbuffer = PTHREAD_MUTEX_INITIALIZER; // declare/init a loc
 
 Matrix ** bigmatrix;
 
-int in = 0;
-int out = 0;
-int counter = 0;
+// int in = 0;
+// int out = 0;
+// int counter = 0;
 
-counter_t procount;
-counter_t concount;
+// counter_t procount;
+// counter_t concount;
+
+
+
+
+
+
+counter_t proCount;
+counter_t conCount;
+
+// Properties
+
+volatile int countIn = 0; 
+volatile int countOut = 0; 
+volatile int count = 0; 
+
 
 // Bounded buffer put() get()
 int put(Matrix * value)
