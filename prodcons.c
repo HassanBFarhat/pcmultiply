@@ -84,17 +84,26 @@ Matrix * get()
 
 // Matrix PRODUCER worker thread
 void *prod_worker(void *arg) {
-    ProdConsStats *pro = (ProdConsStats *)arg; // Stats for the producer
 
-    while (get_cnt(&procount) < NUMBER_OF_MATRICES)
+    ProdConsStats *pcs = (ProdConsStats *)arg; // Stats for the producer
+
+    while (get_cnt(&procount) < NUMBER_OF_MATRICES) // Loop until we produce the specified max
     {
-        Matrix *matrix = GenMatrixRandom(); // Generate a matrix
-        put(matrix);
+        pthread_mutex_lock(&mutex); // Lock the mutex
 
+        if (counter >= BOUNDED_BUFFER_SIZE) // If the buffer is already full...
+        {
+            pthread_cond_wait(&empty, &mutex); // wait until it has room
+        }
 
-        pro->matrixtotal += 1;
-        pro->sumtotal += SumMatrix(matrix);
-        increment_cnt(&procount);
+        Matrix *m = GenMatrixRandom(); // Generate a matrix
+        put(m);						   // Put it in the buffer
+
+        pcs->matrixtotal += 1;		   // Increment number of generated matricies
+        pcs->sumtotal += SumMatrix(m); // Increment the total sum of produced matricies
+        increment_cnt(&procount);  // Increment the produced counter
+
+        pthread_mutex_unlock(&mutex); // Unlock the mutex
     }
 
     return EXIT_SUCCESS;
